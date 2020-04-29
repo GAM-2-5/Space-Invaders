@@ -17,6 +17,13 @@ tick_time=0.00
 enemy_down=0
 enemy_left=0
 enemy_right=20
+enemy_fire=0.0005
+
+player_lives=3
+
+font=pygame.font.Font("freesansbold.ttf",32)
+score_font=pygame.font.Font("freesansbold.ttf",20)
+wave=1
 
 playerImg=pygame.image.load('ship.png')
 playerImgRect=playerImg.get_rect()
@@ -30,6 +37,9 @@ enemy_pos=[370,100]
 
 bulletImg=pygame.image.load('bullet.png')
 bulletImgRect=bulletImg.get_rect()
+
+EbulletImg=pygame.image.load('enemy bullet.png')
+EbulletImgRect=EbulletImg.get_rect()
 
 friendly_bullet=[]
 enemy_bullet=[]
@@ -47,7 +57,14 @@ while not game_over:
     if time.time()-1/30>=tick_time:
         tick_time=time.time()
 
-        if start:     
+        if start:
+            text=font.render("wave "+str(wave),True,(255,255,255))
+            textrect=text.get_rect()
+            textrect.center=(400,300)
+            screen.blit(text,textrect)
+            pygame.display.update()
+            time.sleep(2)
+                        
             player_pos=[370,550]
             start=False
             for i in range(4):
@@ -118,10 +135,20 @@ while not game_over:
             if enemy_left<=0:
                 enemy_down=32
                 direction=True
-
+                
+        for i in range(len(enemy)):
+            if random.random()<enemy_fire:
+                enemy_bullet.append([enemy[i][0]+32,enemy[i][1]+16])
+                
+        for i in range(len(enemy_bullet)):
+            enemy_bullet[i][1]+=8
+        for i in enemy_bullet:
+            if i[1]>=616:
+                enemy_bullet.remove(i)
 
         dead_enemy=[]
         dead_Fbullet=[]
+        dead_Ebullet=[]
 
         for i in range(len(friendly_bullet)):
             for n in range(len(enemy)):
@@ -134,6 +161,23 @@ while not game_over:
 
         for i in range(len(dead_enemy)):
             enemy.pop(dead_enemy[i])
+
+        if len(enemy)==0:
+            start=True
+            wave+=1
+
+
+        for i in range(len(enemy_bullet)):
+            if enemy_bullet[i][1]>=player_pos[1] and enemy_bullet[i][1]<=(player_pos[1]+32) and ((enemy_bullet[i][0]>=player_pos[0] and enemy_bullet[i][0]<=(player_pos[0]+32))or(enemy_bullet[i][0]+5>=player_pos[0] and enemy_bullet[i][0]+5<=(player_pos[0]+32))):
+                player_lives-=1
+                dead_Ebullet.append(i)
+                if player_lives==0:
+                    pygame.display.quit()
+                    sys.exit()
+
+        for i in range(len(dead_Ebullet)):
+            enemy_bullet.pop(dead_Ebullet[i])
+            
                 
         
                
@@ -143,4 +187,7 @@ while not game_over:
             screen.blit(bulletImg,friendly_bullet[i])
         for i in range(len(enemy)):
             screen.blit(enemyImg,enemy[i])
+        for i in range(len(enemy_bullet)):
+            screen.blit(EbulletImg,enemy_bullet[i])
         pygame.display.update()
+
