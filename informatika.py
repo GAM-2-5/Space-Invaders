@@ -18,12 +18,17 @@ enemy_down=0
 enemy_left=0
 enemy_right=20
 enemy_fire=0.0005
+player_speed=4
+fire_rate=0.5
 
 player_lives=3
+score=0
 
 font=pygame.font.Font("freesansbold.ttf",32)
 score_font=pygame.font.Font("freesansbold.ttf",20)
 wave=1
+
+
 
 playerImg=pygame.image.load('ship.png')
 playerImgRect=playerImg.get_rect()
@@ -63,7 +68,11 @@ while not game_over:
             textrect.center=(400,300)
             screen.blit(text,textrect)
             pygame.display.update()
+            pygame.mixer.music.load("next_level.wav")
+            pygame.mixer.music.play(1)
             time.sleep(2)
+            pygame.mixer.music.load("level_music.mp3")
+            pygame.mixer.music.play(-1)
                         
             player_pos=[370,550]
             start=False
@@ -89,7 +98,7 @@ while not game_over:
                     right=False
             if event.type==pygame.KEYDOWN:
 
-                if event.key==pygame.K_SPACE and time.time()-0.5>fire_time:
+                if event.key==pygame.K_SPACE and time.time()-fire_rate>fire_time:
                     friendly_bullet.append([player_pos[0]+16,player_pos[1]-10])
                     fire_time=time.time()
 
@@ -100,9 +109,9 @@ while not game_over:
 
                                   
         if left and player_pos[0]>=10:
-            player_pos[0]=player_pos[0]-4
+            player_pos[0]=player_pos[0]-player_speed
         elif right and player_pos[0]<=760:
-            player_pos[0]=player_pos[0]+4
+            player_pos[0]=player_pos[0]+player_speed
 
         for i in range(len(friendly_bullet)):
             friendly_bullet[i][1]-=18
@@ -155,6 +164,7 @@ while not game_over:
                 if friendly_bullet[i][1]>=enemy[n][1] and friendly_bullet[i][1]<=(enemy[n][1]+32) and ((friendly_bullet[i][0]>=enemy[n][0] and friendly_bullet[i][0]<=(enemy[n][0]+32))or(friendly_bullet[i][0]+5>=enemy[n][0] and friendly_bullet[i][0]+5<=(enemy[n][0]+32))):
                     dead_enemy.append(n)
                     dead_Fbullet.append(i)
+                    score+=50
 
         for i in range(len(dead_Fbullet)):
             friendly_bullet.pop(dead_Fbullet[i])
@@ -165,6 +175,12 @@ while not game_over:
         if len(enemy)==0:
             start=True
             wave+=1
+            enemy_speed*=1.20
+            enemy_fire*=1.20
+            fire_rate*=0.85
+            player_speed*=1.20
+            enemy_fire*=1.20
+            
 
 
         for i in range(len(enemy_bullet)):
@@ -172,6 +188,9 @@ while not game_over:
                 player_lives-=1
                 dead_Ebullet.append(i)
                 if player_lives==0:
+                    pygame.mixer.music.load("death_sound.mp3")
+                    pygame.mixer.music.play(1)
+                    time.sleep(1)
                     pygame.display.quit()
                     sys.exit()
 
@@ -189,5 +208,14 @@ while not game_over:
             screen.blit(enemyImg,enemy[i])
         for i in range(len(enemy_bullet)):
             screen.blit(EbulletImg,enemy_bullet[i])
+        text=score_font.render(str(score),True,(255,255,255))
+        textRect=text.get_rect()
+        textRect.center=(20,20)
+        screen.blit(text,textRect)
+        if player_lives>0:
+            screen.blit(playerImg,(760,10))
+        if player_lives>1:
+            screen.blit(playerImg,(720,10))
+        if player_lives>2:
+            screen.blit(playerImg,(680,10))
         pygame.display.update()
-
